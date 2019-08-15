@@ -17,6 +17,7 @@ int main()
         result_value = (result_value + number/result_value)/2;
         printf("temp: %f \n",temp);
         printf("result: %f \n",result_value);
+        //由于float的位数限制，这里的循环break也可以设置为当temp == result_value时退出循环
         if (fabs(temp - result_value) < 0.00001){
             break;
         }
