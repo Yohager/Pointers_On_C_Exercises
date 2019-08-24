@@ -13,33 +13,30 @@ char *find_char(char const *source, char const *chars);
 
 int main()
 {
-    char str_1[MAX_SIZE];
-    char str_2[MAX_SIZE];
-    char const *source;
-    char const *chars;
-    source = &str_1;
-    chars = &str_2;
-    gets(str_1);
-    gets(str_2);
-    printf("%s %s",str_1,str_2);
+    char source[] = "ABCDEF";
+    char chars[] = "BQCW";
+    //printf("%s %s\n",str_1,str_2);
     char *result;
     result = find_char(source,chars);
-    printf("%s",*result);
+    printf("%c\n",*result);
+    //getchar();
     return 0;
 }
 
-char *find_char(char const *source, char const *chars){
-    char *temp = source;
-    char *result = NULL;
-    while(*source != NULL){
-        result = chars;
-        while(*result != NULL){
-            if (*temp = *result){
-                return source;
-            }
-            result++;
+char *find_char(char const *source,char const *chars)
+{
+    char *ps = source;
+    char *pc = NULL;
+    if(source == NULL || chars == NULL)
+        return NULL;
+    while(*ps != '\0'){
+        pc = chars;
+        while(*pc != '\0'){
+            if(*pc == *ps)
+                return ps;
+            pc++;
         }
-        temp++;
+        ps++;
     }
     return NULL;
 }
