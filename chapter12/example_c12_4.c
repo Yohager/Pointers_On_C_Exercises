@@ -58,6 +58,7 @@ int dll_insert(Dnode *rootp, int new_value)
             rootp->bwd = new_dnode;
         }
         else{
+            //这种情况下这个链表实际上可以看做是一个空链表
             new_dnode->fwd = NULL;
             rootp->fwd = new_dnode;
             new_dnode->bwd = NULL;

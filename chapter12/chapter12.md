@@ -134,3 +134,140 @@ struct Dnode{
 3. 新值插入的位置是链表的结束位置
 4. 该链表为空，插入的新值是第一个节点
 
+给出版本一的代码：
+
+```c
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+typedef struct DNODE{
+    struct DNODE *fwd;
+    struct DNODE *bwd;
+    int value;
+}Dnode;
+
+
+int dll_insert(Dnode *rootp, int new_value);
+
+int dll_insert(Dnode *rootp, int new_value)
+{
+    Dnode *current;
+    Dnode *temp;
+    Dnode *new_dnode;
+    current = rootp->fwd;
+    //首先需要检查这个new_value是否已经在双链表中
+    //同时我们通过这个遍历循环寻找新值应该插入的位置
+    //current指针指向的是新值节点插入的前一节点
+    //temp指针指向的是新值节点插入的后一节点
+    for (current=rootp; (temp = current->fwd) != NULL; current=temp){
+        //如果new_value已经在这个双链表中则函数直接返回
+        if (temp->value == new_value) return 0;
+        if (temp->value > new_value) break;
+    }
+    new_dnode = (Dnode *)malloc(sizeof(Dnode));
+    if (new_dnode == NULL) return 0;
+    new_dnode->value = new_value;
+    //下面开始讨论出现的四种情况下的哪一种
+    if (temp!=NULL){
+        if (current!=NULL){
+            //这种是插入在中间的情况
+            new_dnode->fwd = temp;
+            new_dnode->bwd = current;
+            current->fwd = new_dnode;
+            temp->bwd = new_dnode;
+        }
+        else{
+            //这种情况下是插入在第一个节点处
+            new_dnode->fwd = temp;
+            temp->bwd = new_dnode;
+            rootp->fwd = new_dnode;
+            new_dnode->bwd = NULL;
+        }
+    }
+    else{
+        if (current!=rootp){
+            //这种情况是插入在结尾的位置上
+            new_dnode->fwd = NULL;
+            current->fwd = new_dnode;
+            new_dnode->bwd = current;
+            rootp->bwd = new_dnode;
+        }
+        else{
+            //这种情况下这个链表实际上可以看做是一个空链表
+            new_dnode->fwd = NULL;
+            rootp->fwd = new_dnode;
+            new_dnode->bwd = NULL;
+            rootp->bwd = new_dnode;
+        }
+    }
+    return 1;
+}
+```
+
+使用了两个结构体指针：this和next，this指向的是插入新节点后前面一个节点，next指向的是插入新节点后的后面一个节点。首先使用for循环判断需要插入的值是否已经在链表中。下面对四种情况分别进行讨论，首先考虑插入的新节点不是链表的最后一个节点，这种情况又看是不是在头部插入；第二大类的情况是考虑插入的节点在链表的最后插入，同时的话还需要考虑是否为空链表的情况，实际上每一种情况下的思路都是类似的，只是一些细节上需要改进一下。
+
+#### 课后习题
+
+1. 改写程序12.3不使用current变量实现原函数的功能。
+
+   ```c
+   int sll_insert(register Node **linkp, int new_value)
+   {
+       register Node *new;
+       while (*linkp != NULL && (*linkp)->value < new_value){
+           linkp = &(*linkp)->link;
+       }
+       new = (Node *)malloc(sizeof(Node));
+       if (new == NULL){
+           return FALSE;
+       }
+       new->value = new_value;
+       new->link = *linkp;
+       *linkp = new;
+       return TRUE;
+   }
+   ```
+
+2. 讨论在单链表中使用“头结点”，这个哑节点始终是单链表的第一个元素，这就消除了插入链表起始位置的特殊情况，讨论这个技巧的利与弊。
+
+   *如果考虑在程序12.3这种不用处理任何特殊情况下的代码，这种使用头节点的技巧没有任何的优越之处。反而在程序12.3这种情况下需要处理一些由于这个头结点带来的一些特殊情况：链表创建时需要特殊考虑头结点，其他对链表的操作需要跳过这个头结点，最后这个头结点还会浪费内存。*
+
+3. 在程序12.3中插入函数会把重复的值插入到什么位置，如果将<改为<=会出现什么情况？
+
+   *在程序12.3中会将重复的值插入在其他相同的值的前面；如果改为<=则会将新插入的重复的值插入在其他相同的值的后面。*
+
+4. 讨论一些技巧，怎样省略双链表中的根节点的值字段。
+
+   *如果根节点是动态分配的内存，我们可以通过只为节点分配一部分内存来达到目的。*
+
+   `root = malloc(sizeof(Node) - sizeof(valuetype))`
+
+   一种更加安全的方法是声明一个只包含指针的结构。
+
+   ```c
+   struct DLL_NODE;
+   struct DLL_POINTERS{
+       struct DLL_NODE *fwd;
+       struct DLL_NODE *bwd;
+   };
+   struct DLL_NODE{
+       struct DLL_POINTERS ppinters;
+       int value;
+   };
+   ```
+
+5. 如果程序12.7中对malloc的调用在函数的起始部分执行会有什么结果？
+
+   *可能会导致内存泄露，即可能出现的情况是为新节点分配了内存但是却没有被加入到链表中。*
+
+6. 能不能对一个无序的单链表进行排序？
+
+   *可以，但是效率很低。更加好的一种策略是将所有的节点从链表中取出再重新将他们插入到一个新的有序的单链表中。*
+
+7. 使用这种字母链表的数据结构，搜索一个特定的单词所花费的时间与使用一个存储所有单词的单链表相比，有没有什么变化？
+
+   ![字母链表示意图](alphabet_linklist.png)
+
+   *在上图的这种多链表查找的方案下比在一个包含所有单词的链表中进行查找的效率要高得多。（显而易见hhh）*
+
